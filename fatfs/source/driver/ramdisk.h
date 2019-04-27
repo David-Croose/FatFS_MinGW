@@ -37,8 +37,7 @@ int RAM_disk_ioctl(unsigned char cmd, void *buff)
 {
     int res;
 
-    switch(cmd)
-    {
+    switch (cmd) {
     case CTRL_SYNC:
         res = RES_OK;
         break;
