@@ -3,7 +3,7 @@
 #include "ff.h"
 
 #define FILE_NAME       "message.txt"
-#define WRITE_TEXT      "hello fatfs"
+#define WRITE_TEXT      "hello fatfs 0123456789 +_<>"
 #define WRITE_TEXT_LEN  strlen((WRITE_TEXT))
 
 static FATFS FatFs;   /* Work area (filesystem object) for logical drive */
@@ -55,6 +55,11 @@ int main(void)
     }
     buffer[br] = 0;
     printf("read successfully, read: %s\n", buffer);
+
+    if (strcmp(WRITE_TEXT, buffer)) {
+        printf("the read buffer is not equal to write buffer\n");
+        return 1;
+    }
 
     f_close(&fil);
 
