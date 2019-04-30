@@ -26,11 +26,10 @@ DSTATUS disk_status (
 )
 {
 	DSTATUS stat;
-	int result;
 
 	switch (pdrv) {
 	case DEV_RAM :
-		result = RAM_disk_status();
+	    stat = RAM_disk_status();
 
 		// translate the reslut code here
 
@@ -64,11 +63,10 @@ DSTATUS disk_initialize (
 )
 {
 	DSTATUS stat;
-	int result;
 
 	switch (pdrv) {
 	case DEV_RAM :
-		result = RAM_disk_initialize();
+	    stat = RAM_disk_initialize();
 
 		// translate the reslut code here
 
@@ -105,13 +103,12 @@ DRESULT disk_read (
 )
 {
 	DRESULT res;
-	int result;
 
 	switch (pdrv) {
 	case DEV_RAM :
 		// translate the arguments here
 
-		result = RAM_disk_read(buff, sector, count);
+	    res = RAM_disk_read(buff, sector, count);
 
 		// translate the reslut code here
 
@@ -155,13 +152,12 @@ DRESULT disk_write (
 )
 {
 	DRESULT res;
-	int result;
 
 	switch (pdrv) {
 	case DEV_RAM :
 		// translate the arguments here
 
-		result = RAM_disk_write(buff, sector, count);
+	    res = RAM_disk_write(buff, sector, count);
 
 		// translate the reslut code here
 
@@ -203,7 +199,6 @@ DRESULT disk_ioctl (
 )
 {
 	DRESULT res;
-	int result;
 
 	switch (pdrv) {
 	case DEV_RAM :
