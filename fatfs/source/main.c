@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include "ff.h"
 
@@ -8,13 +9,74 @@
 
 static FATFS FatFs;   /* Work area (filesystem object) for logical drive */
 
+/**
+ * create the specified file
+ * @param name: the file to be created
+ * @return: see @dat_ret_t
+ */
+static int32_t create_file(const char *name) {
+    FIL fil;
+
+    if (f_open(&fil, name, FA_OPEN_ALWAYS | FA_WRITE)) {
+        return 1;
+    }
+    f_close(&fil);
+    return 0;
+}
+
+/**
+ * create the specified folder
+ * @param name: the folder to be created
+ * @return: see @dat_ret_t
+ */
+static int32_t create_folder(const char *name) {
+    if (!f_stat(name, NULL)) {  /* if the folder is exist already */
+        return 0;
+    }
+
+    if (f_mkdir(name)) {
+        return 1;
+    }
+    return 0;
+}
+
+static int32_t write_file(const char *name, const char *p, uint32_t len) {
+    FIL fil;
+    uint32_t bw;
+
+    if (f_open(&fil, name, FA_OPEN_ALWAYS | FA_WRITE)) {
+        return 1;
+    }
+    if (f_write(&fil, p, len, &bw) || bw != len) {
+        f_close(&fil);
+        return 2;
+    }
+    f_close(&fil);
+    return 0;
+}
+
+static int32_t read_file(const char *name, char *p, uint32_t len) {
+    FIL fil;
+    uint32_t br;
+
+    if (f_open(&fil, name, FA_READ)) {
+        return 1;
+    }
+    if (f_read(&fil, p, len, &br) || br != len) {
+        f_close(&fil); 
+        return 2;
+    }
+    f_close(&fil); 
+    return 0;
+}
+
 int main(void)
 {
+    static BYTE work[FF_MAX_SS];
     FIL fil;
     char buffer[100];
     UINT br, bw;
     FRESULT res;
-    BYTE work[FF_MAX_SS];
 
     if ((res = f_mkfs("0:/", FM_ANY, 0, work, sizeof(work))) != FR_OK) {
         printf("mkfs error! res=%d\n", res);
@@ -28,40 +90,41 @@ int main(void)
     }
     printf("mount successfully\n");
 
-    if ((res = f_open(&fil, FILE_NAME, FA_WRITE | FA_CREATE_ALWAYS)) != FR_OK) {
-        printf("open error! res=%d\n", res);
-        return 1;
+    //===============================================================================
+    // your code begin here
+
+    unsigned int i;
+    unsigned int max = 90; 
+    char folder[sizeof("YearMoDaHoMiSe")];
+    char fullname[sizeof("/data/YearMoDaHoMiSe/CIM_ECG_PARM.txt")];
+ 
+    create_folder("/data");
+    for (i = 0; i < max; i++) {
+        memset(folder, 0, sizeof(folder));
+        sprintf(folder, "/data/%08d", i);
+        create_folder(folder);
+
+        memset(fullname, 0, sizeof(fullname));
+        sprintf(fullname, "%s/%s", folder, "CIM_ECG_PARM.txt");
+        create_file(fullname);
+
+        if (write_file(fullname, WRITE_TEXT, WRITE_TEXT_LEN)) {
+            printf("write failed at %d, line=%d\n", i, __LINE__);
+            return 1;
+        }
+        memset(buffer, 0, sizeof(buffer));
+        if (read_file(fullname, buffer, WRITE_TEXT_LEN)) {
+            printf("read failed at %d, line=%d\n", i, __LINE__);
+            return 1;
+        }
+        if (strcmp(buffer, WRITE_TEXT)) {
+            printf("compare failed at %d, line=%d. the read buffer:%s\n", i, __LINE__, buffer);
+            return 1;
+        }
     }
-    printf("open successfully\n");
+    printf("test OK\n");
 
-    if ((res = f_write(&fil, WRITE_TEXT, WRITE_TEXT_LEN, &bw)) != FR_OK) {
-        printf("write error! res=%d\n", res);
-        return 1;
-    }
-    printf("write successfully, wrote: %s\n", WRITE_TEXT);
-
-    f_close(&fil);
-
-    if ((res = f_open(&fil, FILE_NAME, FA_READ)) != FR_OK) {
-        printf("open error! res=%d\n", res);
-        return 1;
-    }
-    printf("open successfully\n");
-
-    if ((res = f_read(&fil, buffer, sizeof(buffer), &br)) != FR_OK || br == 0
-        || br > sizeof(buffer)) {
-        printf("read error! res=%d\n", res);
-        return 1;
-    }
-    buffer[br] = 0;
-    printf("read successfully, read: %s\n", buffer);
-
-    if (strcmp(WRITE_TEXT, buffer)) {
-        printf("the read buffer is not equal to write buffer\n");
-        return 1;
-    }
-
-    f_close(&fil);
+    //-------------------------------------------------------------------------------
 
     return 0;
 }

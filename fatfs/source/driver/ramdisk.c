@@ -2,7 +2,7 @@
 #include "ff.h"
 #include "diskio.h"
 
-#define CFG_RAMDISK_SIZE               (100 * 1024)
+#define CFG_RAMDISK_SIZE               (500 * 1024)
 #define CFG_RAMDISK_SECTOR_SIZE        (512)
 #define RAMDISK_SECTOR_TOTAL           ((CFG_RAMDISK_SIZE) / (CFG_RAMDISK_SECTOR_SIZE))
 
