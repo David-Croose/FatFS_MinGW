@@ -3,12 +3,31 @@
 #include "ff.h"
 #include "test.h"
 
-#define ERROR_PRINT(x)       if ((x)) { printf("error in %d\n", __LINE__); goto error; }
+#define ERROR_PRINT()       printf("error in %d\n", __LINE__); goto error;
+
+static int32_t filesystem_init(void) {
+    static FATFS FatFs;   /* Work area (filesystem object) for logical drive */
+    static BYTE work[FF_MAX_SS];
+    FRESULT res;
+
+    if ((res = f_mkfs("0:/", FM_ANY, 0, work, sizeof(work))) != FR_OK) {
+        printf("mkfs error! res=%d\n", res);
+        return 1;
+    }
+    printf("mkfs successfully\n");
+
+    if ((res = f_mount(&FatFs, "0:", 1)) != FR_OK) {
+        printf("mount error! res=%d\n", res);
+        return 1;
+    }
+    printf("mount successfully\n");
+    return 0;
+}
 
 static int32_t create_file(const char *name) {
     FIL fil;
 
-    if (f_open(&fil, name, FA_OPENALWAYS)) {
+    if (f_open(&fil, name, FA_OPEN_ALWAYS)) {
         return 1;
     }
     f_close(&fil); 
@@ -55,6 +74,7 @@ static int32_t read_file(const char *name, void *p, uint32_t len) {
 static int32_t delete_folder(const char *name) {
     DIR dir;
     FILINFO fno;
+    uint32_t i;
 
     if (f_opendir(&dir, name)) {
         return 1;
@@ -101,6 +121,8 @@ int main(void) {
     char name[100];
     char *rbuf;
     int32_t rbuf_len = sizeof(testbuf);
+ 
+    filesystem_init();
 
     printf("start...\n");
     if ((rbuf = malloc(rbuf_len)) == NULL) {
@@ -113,7 +135,7 @@ int main(void) {
         }
     }
  
-    for (i = 0; i < max; i++) {
+    for (i = 1; i <= max; i++) {
         memset(name, 0, sizeof(name));
         snprintf(name, sizeof(name), "0:/data/%014d", i);
         if (create_folder(name)) {
