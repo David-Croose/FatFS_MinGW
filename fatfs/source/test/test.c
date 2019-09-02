@@ -60,12 +60,14 @@ static int32_t delete_folder(const char *name) {
         return 1;
     }
 
-    for (i = 0; i < 100; i++) {
-        if (f_readdir(&dir, &fno)) {
-            goto error;
+    for (i = 0; i < 50; i++) {
+        if (f_readdir(&dir, &fno) || fno.fname[0] == 0) {
+            continue;
         }
 
-        if (fno.
+        if (f_unlink(fno.fname)) {
+            goto error;
+        }
     }
 
     return 0;
@@ -89,14 +91,19 @@ static int32_t is_file_exist(const char *name) {
     return 0;
 }
 
+static int32_t verify_buf(const char *p1, const char *p2) {
+    return strcmp(p1, p2); 
+}
+
 int main(void) {
     uint32_t i;
     uint32_t max = 90;
     char name[100];
     char *rbuf;
+    int32_t rbuf_len = sizeof(testbuf);
 
     printf("start...\n");
-    if ((rbuf = malloc(sizeof(testbuf))) == NULL) {
+    if ((rbuf = malloc(rbuf_len)) == NULL) {
         ERROR_PRINT();
     }
 
@@ -112,70 +119,21 @@ int main(void) {
         if (create_folder(name)) {
             ERROR_PRINT();
         }
-        snprintf(name, sizeof(name), "0:/data/%014d/CIM_ECG_PARM_WW.txt", i);
-        if (create_folder(name)) {
-            ERROR_PRINT();
-        }   
 
-        if (create_file(name)) {
-            ERROR_PRINT();
-        }
-
-        if (write_file(name, testbuf)) {
-            ERROR_PRINT();
-        }
-
-        if (read_file(name, rbuf)) {
-            ERROR_PRINT();
-        }
-
-        if (verify_buf(testbuf, rbuf)) {
-            ERROR_PRINT();
-        }
-    }
-
-    free(rbuf);
-    printf("OK\n");
-    return 0;
-int main(void) {
-    uint32_t i;
-    uint32_t max = 90;
-    char name[100];
-    char *rbuf;
-
-    printf("start...\n");
-    if ((rbuf = malloc(sizeof(testbuf))) == NULL) {
-        ERROR_PRINT();
-    }
-
-    if (f_stat("/data", NULL)) {
-        if (create_folder("/data")) {
-            ERROR_PRINT();
-        }
-    }
-
-    for (i = 0; i < max; i++) {
         memset(name, 0, sizeof(name));
-        snprintf(name, sizeof(name), "0:/data/%014d", i);
-        if (create_folder(name)) {
-            ERROR_PRINT();
-        }
         snprintf(name, sizeof(name), "0:/data/%014d/CIM_ECG_PARM_WW.txt", i);
-        if (create_folder(name)) {
+        if (create_file(name)) {
             ERROR_PRINT();
         }   
 
-        if (create_file(name)) {
+        if (write_file(name, testbuf, sizeof(testbuf))) {
             ERROR_PRINT();
         }
 
-        if (write_file(name, testbuf)) {
+        if (read_file(name, rbuf, rbuf_len)) {
             ERROR_PRINT();
         }
-
-        if (read_file(name, rbuf)) {
-            ERROR_PRINT();
-        }
+        rbuf[rbuf_len - 1] = 0;
 
         if (verify_buf(testbuf, rbuf)) {
             ERROR_PRINT();
