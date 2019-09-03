@@ -104,11 +104,10 @@ static int32_t delete_file(const char *name) {
     return 0; 
 }
 
+// return: 1 --- exist
+//         0 --- not exist
 static int32_t is_file_exist(const char *name) {
-    if (f_stat(name, NULL)) {
-        return 1;
-    }
-    return 0;
+    return f_stat(name, NULL) == 0;
 }
 
 static int32_t verify_buf(const char *p1, const char *p2) {
@@ -119,17 +118,19 @@ int main(void) {
     uint32_t i;
     uint32_t max = 90;
     char name[100];
-    char *rbuf;
+    char *rbuf = NULL;
     int32_t rbuf_len = sizeof(testbuf);
  
-    filesystem_init();
+    if (filesystem_init()) {
+        ERROR_PRINT();
+    }
 
     printf("start...\n");
     if ((rbuf = malloc(rbuf_len)) == NULL) {
         ERROR_PRINT();
     }
 
-    if (is_file_exist("/data") == 0) {
+    if (!is_file_exist("/data")) {
         if (create_folder("/data")) {
             ERROR_PRINT();
         }
