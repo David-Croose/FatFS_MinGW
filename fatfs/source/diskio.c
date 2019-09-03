@@ -25,7 +25,7 @@ DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
+	DSTATUS stat = STA_NOINIT;
 
 	switch (pdrv) {
 	case DEV_RAM :
@@ -62,7 +62,7 @@ DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
+	DSTATUS stat = STA_NOINIT;
 
 	switch (pdrv) {
 	case DEV_RAM :
@@ -102,7 +102,7 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-	DRESULT res;
+	DRESULT res = RES_PARERR;
 
 	switch (pdrv) {
 	case DEV_RAM :
@@ -151,7 +151,7 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	DRESULT res;
+	DRESULT res = RES_PARERR;
 
 	switch (pdrv) {
 	case DEV_RAM :
@@ -198,7 +198,7 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	DRESULT res;
+	DRESULT res = RES_PARERR;
 
 	switch (pdrv) {
 	case DEV_RAM :

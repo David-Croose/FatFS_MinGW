@@ -73,9 +73,7 @@ static int32_t read_file(const char *name, char *p, uint32_t len) {
 int main(void)
 {
     static BYTE work[FF_MAX_SS];
-    FIL fil;
     char buffer[100];
-    UINT br, bw;
     FRESULT res;
 
     if ((res = f_mkfs("0:/", FM_ANY, 0, work, sizeof(work))) != FR_OK) {
